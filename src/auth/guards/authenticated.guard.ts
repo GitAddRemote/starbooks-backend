@@ -1,15 +1,22 @@
 // src/auth/guards/authenticated.guard.ts
 
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class AuthenticatedGuard implements CanActivate {
+
+  constructor(private reflector: Reflector) {}
+
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
-    console.log('AuthenticatedGuard canActivate called');
-    console.log('Is Authenticated:', req.isAuthenticated());
-    console.log('Session:', req.session);
-    console.log('User:', req.user);
-    return req.isAuthenticated();
+
+    if (req.isAuthenticated()) {
+      return true;
+    } else {
+      req.session.returnTo = req.originalUrl;
+      context.switchToHttp().getResponse().redirect('/');
+      return false;
+    }
   }
 }
